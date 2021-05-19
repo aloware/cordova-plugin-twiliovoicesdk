@@ -45,7 +45,7 @@ https://github.com/jefflinwood/twilio_client_phonegap
 ## Available on NPM
 
 ```
-aloware-plugin-twiliovoicesdk
+cordova-aloware-twiliovoice-plugin
 ```
 
 The NPM Page for this plugin: https://www.npmjs.com/package/aloware-plugin-twiliovoicesdk
