@@ -4,7 +4,7 @@
 Aloware Cordova Plugin for Twilio Programmable Voice SDK Specific use for Aloware Cordova
 
 # Changelog
-6.1.3 - May 21, 2021 - Updated to support Twilio Voice SDK 5.7.2 for Android
+6.1.4 - May 21, 2021 - Updated to support Twilio Voice SDK 5.7.2 for Android
 
 # Changed Package Name to aloware-plugin-twiliovoicesdk
 Note - Only for Aloware Cordova Plugin.
@@ -45,7 +45,7 @@ https://github.com/jefflinwood/twilio_client_phonegap
 ## Available on NPM
 
 ```
-cordova-aloware-twiliovoice-plugin
+cordova-plugin-twiliovoice-aloware
 ```
 
 The NPM Page for this plugin: https://www.npmjs.com/package/aloware-plugin-twiliovoicesdk
