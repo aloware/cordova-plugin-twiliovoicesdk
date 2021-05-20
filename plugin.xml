@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    id="cordova-aloware-twiliovoice-plugindk"
+    id="cordova-aloware-twiliovoice-plugin"
     version="6.1.1">
 
     <name>TwilioVoice</name>
@@ -19,7 +19,7 @@
     </engines>
 
     <!-- Necessary to set app name for incoming call notifications on Android and CallKit on iOS -->
-    <preference name="INCOMING_CALL_APP_NAME" default=""/>
+    <preference name="INCOMING_CALL_APP_NAME" default="Aloware Talk"/>
 
     <!-- Necessary to enable CallKit on iOS -->
     <preference name="ENABLE_CALL_KIT" default="false"/>
@@ -73,6 +73,7 @@
                 target-dir="src/com/phonegap/plugins/twiliovoice" />
         <source-file src="src/android/com/phonegap/plugins/twiliovoice/CallRingtoneManager.java"
                 target-dir="src/com/phonegap/plugins/twiliovoice" />
+                
         <source-file src="src/android/com/phonegap/plugins/twiliovoice/fcm/VoiceFirebaseMessagingService.java"
                      target-dir="src/com/phonegap/plugins/twiliovoice/fcm" />
 
