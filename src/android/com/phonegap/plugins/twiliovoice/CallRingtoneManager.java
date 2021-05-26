@@ -38,31 +38,36 @@ public class CallRingtoneManager{
 
     audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
     vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+    Log.d(LOG, "Initialized");
   }
 
   private Uri setDefaultRingtone(Context context){
     Uri rintonesound = ringtoneManager.getActualDefaultRingtoneUri(context, ringtoneManager.TYPE_RINGTONE);
 
+    Log.d(LOG, "ringtone");
     if(rintonesound == null){
       // alert is null, using backup
       rintonesound = ringtoneManager.getActualDefaultRingtoneUri(context, ringtoneManager.TYPE_NOTIFICATION);
+      Log.d(LOG, "notification");
 
       // I can't see this ever being null (as always have a default notification)
       // but just incase
       if(rintonesound == null) {
         // alert backup is null, using 2nd backup
         rintonesound = ringtoneManager.getActualDefaultRingtoneUri(context, ringtoneManager.TYPE_ALARM);
+        Log.d(LOG, "alarm");
       }
     }
     return rintonesound;
   }
 
   public void play(Context context){
+    Log.d(LOG, "Play ringer");
     if(ringtone != null){
-      Log.d(LOG, "Play ringer");
-      checkPhoneState(context);
-      ringtone.stop();
-      ringtone.play();
+      if(!ringtone.isPlaying()){
+        checkPhoneState(context);
+        ringtone.play();
+      }
     }
   }
 

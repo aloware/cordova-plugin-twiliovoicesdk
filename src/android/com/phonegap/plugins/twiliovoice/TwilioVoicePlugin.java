@@ -236,25 +236,6 @@ public class TwilioVoicePlugin extends CordovaPlugin {
       } else if (intent.getAction().equals(ACTION_CANCELLED_CALL)) {
           handleCancel(intent);
       }
-
-      // Get the Firebase token
-      FirebaseMessaging.getInstance().getToken()
-              .addOnCompleteListener(new OnCompleteListener<String>() {
-                  @Override
-                  public void onComplete(@NonNull Task<String> task) {
-                      if (!task.isSuccessful()) {
-                          Log.w(TAG, "Fetching FCM registration token failed", task.getException());
-                          return;
-                      }
-
-                      // Get new FCM registration token
-                      String token = task.getResult();
-
-                      Log.i(TAG, "Retrieved FCM Token: " + token);
-                      mFCMToken = token;
-                      register();
-                  }
-              });
     }
 
     public void checkPermissionForMicrophone(){
@@ -294,6 +275,25 @@ public class TwilioVoicePlugin extends CordovaPlugin {
             Log.d(TAG, "Initializing with Access Token");
 
             mAccessToken = args.optString(0);
+
+          // Get the Firebase token
+          FirebaseMessaging.getInstance().getToken()
+            .addOnCompleteListener(new OnCompleteListener<String>() {
+              @Override
+              public void onComplete(@NonNull Task<String> task) {
+                if (!task.isSuccessful()) {
+                  Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                  return;
+                }
+
+                // Get new FCM registration token
+                String token = task.getResult();
+
+                Log.i(TAG, "Retrieved FCM Token: " + token);
+                mFCMToken = token;
+                register();
+              }
+            });
 
             mInitCallbackContext = callbackContext;
 
@@ -668,7 +668,9 @@ public class TwilioVoicePlugin extends CordovaPlugin {
      * Register your FCM token with Twilio to enable receiving incoming calls via FCM
      */
     private void register() {
-        Voice.register(mAccessToken, Voice.RegistrationChannel.FCM, mFCMToken, mRegistrationListener);
+      if(mAccessToken != null) {
+          Voice.register(mAccessToken, Voice.RegistrationChannel.FCM, mFCMToken, mRegistrationListener);
+      }
     }
 
     // Process incoming call invites

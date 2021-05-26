@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-twiliovoice-aloware",
-  "version": "6.1.4",
+  "version": "6.1.5",
   "description": "Use the Twilio Voice SDK for iOS or Android with Cordova/PhoneGap for Aloware Mobile Application. Successor to Twilio Client Plugin",
   "cordova": {
     "id": "cordova-plugin-twiliovoice-aloware",
