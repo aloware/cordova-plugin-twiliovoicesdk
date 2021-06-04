@@ -1,5 +1,6 @@
 package com.phonegap.plugins.twiliovoice;
 import android.content.Context;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -19,6 +20,7 @@ public class CallRingtoneManager{
   private AudioManager audioManager;
   private long pattern[] = { 0, 100, 200, 300, 400 };
   public static CallRingtoneManager instance;
+  private Intent intent = null;
 
   private final static String LOG = "CallRingtoneManager";
 
@@ -120,6 +122,21 @@ public class CallRingtoneManager{
         Log.d(LOG, "vibrate mode");
         startVibrate();
         break;
+    }
+  }
+
+  //temporarily store intent in singleton
+  public void setIntent(Intent intent){
+    this.intent = intent;
+  }
+
+  public Intent getIntent(){
+    return this.intent;
+  }
+
+  public void clearIntent(){
+    if(intent != null){
+      this.intent = null;
     }
   }
 }

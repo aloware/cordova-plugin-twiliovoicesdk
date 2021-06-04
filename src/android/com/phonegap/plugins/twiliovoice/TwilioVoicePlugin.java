@@ -61,47 +61,49 @@ import java.util.Map;
 public class TwilioVoicePlugin extends CordovaPlugin {
 
     public final static String TAG = "TwilioVoicePlugin";
-
-    private CallbackContext mInitCallbackContext;
-    private JSONArray mInitDeviceSetupArgs;
-    private int mCurrentNotificationId = 1;
-    private String mCurrentNotificationText;
-    private NotificationManager mNotifyMgr = null;
-    Context acontext = null;
-
-  Call.Listener mCallListener = callListener();
-
-    // Twilio Voice Member Variables
-    private Call mCall;
-    private CallInvite mCallInvite;
-
-    // Access Token
-    private String mAccessToken;
-
-    // FCM Token
-    private String mFCMToken;
-
-    // Has the plugin been initialized
-    private boolean mInitialized = false;
-
-    // An incoming call intent to process (can be null)
-    private Intent mIncomingCallIntent;
-
-    // Google Play Services Request Magic Number
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-
     // Constants for Intents and Broadcast Receivers
     public static final String ACTION_SET_FCM_TOKEN = "SET_FCM_TOKEN";
     public static final String INCOMING_CALL_INVITE = "INCOMING_CALL_INVITE";
     public static final String INCOMING_CALL_NOTIFICATION_ID = "INCOMING_CALL_NOTIFICATION_ID";
     public static final String ACTION_INCOMING_CALL = "INCOMING_CALL";
     public static final String ACTION_CANCELLED_CALL = "CANCELLED_CALL";
-
     public static final String KEY_FCM_TOKEN = "FCM_TOKEN";
-
+    // Google Play Services Request Magic Number
+    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+    Context acontext = null;
+    private CallbackContext mInitCallbackContext;
+    private JSONArray mInitDeviceSetupArgs;
+    private int mCurrentNotificationId = 1;
+    private String mCurrentNotificationText;
+    private NotificationManager mNotifyMgr = null;
+    // Twilio Voice Member Variables
+    private Call mCall;
+    private CallInvite mCallInvite;
+    // Access Token
+    private String mAccessToken;
+    // FCM Token
+    private String mFCMToken;
+    // Has the plugin been initialized
+    private boolean mInitialized = false;
+    // An incoming call intent to process (can be null)
+    private Intent mIncomingCallIntent;
     private AudioManager audioManager;
     private int savedAudioMode = AudioManager.MODE_INVALID;
+  Call.Listener mCallListener = callListener();
+    // Twilio Voice Registration Listener
+    private RegistrationListener mRegistrationListener = new RegistrationListener() {
+        @Override
+        public void onRegistered(String accessToken, String fcmToken) {
+          Log.d(TAG, "Successfully registered FCM " + fcmToken);
+        }
 
+        @Override
+        public void onError(RegistrationException exception, String accessToken, String fcmToken) {
+            Log.e(TAG, "Error registering Voice Client: " + exception.getMessage(), exception);
+        }
+
+
+    };
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -129,23 +131,7 @@ public class TwilioVoicePlugin extends CordovaPlugin {
         }
     };
 
-    // Twilio Voice Registration Listener
-    private RegistrationListener mRegistrationListener = new RegistrationListener() {
-        @Override
-        public void onRegistered(String accessToken, String fcmToken) {
-          Log.d(TAG, "Successfully registered FCM " + fcmToken);
-        }
-
-        @Override
-        public void onError(RegistrationException exception, String accessToken, String fcmToken) {
-            Log.e(TAG, "Error registering Voice Client: " + exception.getMessage(), exception);
-        }
-
-
-    };
-
     // Twilio Voice Call Listener
-    // private Call.Listener mCallListener = new Call.Listener() {
     private Call.Listener callListener() {
         return new Call.Listener() {
 
@@ -206,8 +192,6 @@ public class TwilioVoicePlugin extends CordovaPlugin {
         };
     }
 
-    ;
-
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
 
@@ -219,13 +203,6 @@ public class TwilioVoicePlugin extends CordovaPlugin {
 
       Context context = cordova.getActivity().getApplicationContext();
       audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-      try {
-        //use bluetooth audio when bluetooth is connected
-        audioManager.startBluetoothSco();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
       //Check microphone permission
       checkPermissionForMicrophone();
 
@@ -306,10 +283,19 @@ public class TwilioVoicePlugin extends CordovaPlugin {
             LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(cordova.getActivity());
             lbm.registerReceiver(mBroadcastReceiver, intentFilter);
 
+
             if (mIncomingCallIntent != null) {
                 Log.d(TAG, "initialize(): Handle an incoming call");
                 handleIncomingCallIntent(mIncomingCallIntent);
                 mIncomingCallIntent = null;
+            }
+
+            if(CallRingtoneManager.getInstance(cordova.getActivity()).getIntent() != null){
+              Log.d(TAG, "Intent from closed-app push received");
+              mIncomingCallIntent = CallRingtoneManager.getInstance(cordova.getActivity()).getIntent();
+              handleIncomingCallIntent(mIncomingCallIntent);
+              mIncomingCallIntent = null;
+              CallRingtoneManager.getInstance(cordova.getActivity()).clearIntent();
             }
 
             javascriptCallback("onclientinitialized", mInitCallbackContext);
@@ -542,6 +528,9 @@ public class TwilioVoicePlugin extends CordovaPlugin {
 //     * @param mode Speaker Mode
      */
     public void setSpeaker(final JSONArray arguments, final CallbackContext callbackContext) {
+      if(audioManager == null){
+        audioManager = (AudioManager) cordova.getActivity().getSystemService(Context.AUDIO_SERVICE);
+      }
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
                 String mode = arguments.optString(0);
@@ -589,6 +578,13 @@ public class TwilioVoicePlugin extends CordovaPlugin {
                  * if this is not set.
                  */
                 audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+
+              try {
+                //use bluetooth audio when bluetooth is connected
+                audioManager.startBluetoothSco();
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
             } else {
                 audioManager.setMode(savedAudioMode);
                 audioManager.abandonAudioFocus(null);
@@ -650,7 +646,10 @@ public class TwilioVoicePlugin extends CordovaPlugin {
         lbm.unregisterReceiver(mBroadcastReceiver);
 
         //stop the audio bluetooth to prevent memory leaking
+      if(audioManager != null){
         audioManager.stopBluetoothSco();
+      }
+
         super.onDestroy();
     }
 
